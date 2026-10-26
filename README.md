@@ -23,73 +23,81 @@ Program to implement the linear regression using gradient descent.
 Developed by: Ilakkiya K
 RegisterNumber: 212225040130
 */
+
 import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
+from sklearn.preprocessing import StandardScaler
+data = pd.read_csv("exp_3_50_Startups.csv")
+print("First 5 rows of the dataset:")
+display(data.head())
+data_encoded = pd.get_dummies(data, columns=['State'], drop_first=True)
+print("Encoded dataset:")
+display(data_encoded.head())
+X_raw = data_encoded.drop('Profit', axis=1).values
+y_raw = data_encoded['Profit'].values.reshape(-1, 1)
+print("Shape of features:", X_raw.shape)
+print("Shape of target:", y_raw.shape)
+X_scaler = StandardScaler()
+y_scaler = StandardScaler()
+X = X_scaler.fit_transform(X_raw)
+y = y_scaler.fit_transform(y_raw)
+m = X.shape[0]
+X = np.hstack((np.ones((m, 1)), X))
+print("Shape of X after adding bias term:", X.shape)
+def compute_cost(X, y, theta):
+    """
+    Compute Mean Squared Error cost.
+    """
+    m = len(y)
+    preds = X.dot(theta)
+    cost = (1 / (2 * m)) * np.sum((preds - y) ** 2)
+    return cost
+def gradient_descent(X, y, learning_rate=0.01, num_iters=2000, tol=1e-8, verbose=False):
+    """
+    Batch Gradient Descent for Linear Regression.
+    """
+    m, n = X.shape
+    theta = np.zeros((n, 1))
+    J_history = []
 
-# -----------------------
-# Data
-# -----------------------
-x = np.array([1, 2, 3, 4, 5], dtype=float)
-y = np.array([2, 4, 6, 8, 10], dtype=float)
+    prev_cost = compute_cost(X, y, theta)
 
-# -----------------------
-# Parameters
-# -----------------------
-w = 0.0
-b = 0.0
+    for i in range(num_iters):
+        preds = X.dot(theta)
+        errors = preds - y
+        grad = (1 / m) * (X.T.dot(errors))
+        theta -= learning_rate * grad
+
+        cost = compute_cost(X, y, theta)
+        J_history.append(cost)
+
+        if abs(prev_cost - cost) < tol:
+            if verbose:
+                print(f"Converged at iteration {i}")
+            break
+        prev_cost = cost
+
+        if verbose and (i % 500 == 0 or i < 5):
+            print(f"Iteration {i:4d}, Cost: {cost:.6f}")
+
+    return theta, J_history
 alpha = 0.01
-epochs = 100
-n = len(x)
+theta, J_hist = gradient_descent(X, y, learning_rate=alpha, num_iters=5000, tol=1e-9, verbose=True)
 
-losses = []
-
-# -----------------------
-# Gradient Descent
-# -----------------------
-for _ in range(epochs):
-    y_hat = w * x + b
-
-    # Mean Squared Error
-    loss = np.mean((y_hat - y) ** 2)
-    losses.append(loss)
-
-    dw = (2/n) * np.sum((y_hat - y) * x)
-    db = (2/n) * np.sum(y_hat - y)
-
-    w -= alpha * dw
-    b -= alpha * db
-
-# -----------------------
-# Plots
-# -----------------------
-plt.figure(figsize=(12, 5))
-
-# 1️⃣ Loss vs Iterations
-plt.subplot(1, 2, 1)
-plt.plot(losses, color="blue")
-plt.xlabel("Iterations")
-plt.ylabel("Loss (MSE)")
-plt.title("Loss vs Iterations")
-
-# 2️⃣ Regression Line
-plt.subplot(1, 2, 2)
-plt.scatter(x, y, color="red", label="Data")
-plt.plot(x, w * x + b, color="green", label="Regression Line")
-plt.xlabel("x")
-plt.ylabel("y")
-plt.title("Linear Regression Fit")
-plt.legend()
-
-plt.tight_layout()
+print("\nLearned Parameters (Theta):")
+print(theta.flatten())
+plt.figure(figsize=(7,4))
+plt.plot(J_hist)
+plt.xlabel('Iterations')
+plt.ylabel('Cost (MSE/2)')
+plt.title('Cost Function Convergence')
+plt.grid(True)
 plt.show()
-
-print("Final weight (w):", w)
-print("Final bias (b):", b)
 ```
 
 ## Output:
-<img width="1253" height="587" alt="image" src="https://github.com/user-attachments/assets/3b549795-5b24-4c01-b63e-f9c4bff55cfb" />
-
+<img width="761" height="487" alt="image" src="https://github.com/user-attachments/assets/f2076b74-2c33-406c-89dd-0787f8e0915f" />
 
 ## Result:
 Thus the program to implement the linear regression using gradient descent is written and verified using python programming.
